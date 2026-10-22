@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كتاب الرياضيات - الصف الثاني المتوسط</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="pdf.min.js"></script>
+</head>
+<body>
+    <!-- خلفية متحركة بالرموز الرياضية -->
+    <div class="math-bg" id="mathBg"></div>
+
+    <!-- زر فتح دفتر المربعات -->
+    <button id="toggleNotebook" class="notebook-toggle-btn">📝 دفتر المربعات</button>
+    
+    <!-- نافذة دفتر المربعات -->
+    <div id="notebookPopup" class="notebook-popup">
+        <button id="lockNotebook" class="lock-popup-btn" title="قفل الدفتر">🔓</button>
+        <button id="closeNotebook" class="close-popup-btn">✕</button>
+        <div class="notebook-container">
+            <div class="notebook-header" id="notebookHeader">
+                <h3>📝 دفتر المربعات</h3>
+                <button id="clearNotebook" class="pen-btn">🗑️ مسح</button>
+            </div>
+            <div class="notebook-tools">
+                <div class="tool-group">
+                    <label>اللون:</label>
+                    <input type="color" id="notebookPenColor" value="#000000" class="color-picker">
+                </div>
+                <div class="tool-group">
+                    <label>الحجم:</label>
+                    <input type="range" id="notebookPenSize" min="1" max="10" value="2" class="size-picker">
+                </div>
+                <div class="tool-group">
+                    <label>الأداة:</label>
+                    <select id="notebookTool" class="select-input">
+                        <option value="pen">✏️ قلم</option>
+                        <option value="line">📏 خط مستقيم</option>
+                        <option value="circle">⭕ دائرة</option>
+                        <option value="rectangle">⬜ مستطيل</option>
+                        <option value="triangle">🔺 مثلث</option>
+                        <option value="eraser">🧹 ممحاة</option>
+                    </select>
+                </div>
+                <div class="tool-group">
+                    <label>الشبكة:</label>
+                    <button id="toggleGrid" class="pen-btn">إخفاء</button>
+                </div>
+            </div>
+            <div class="notebook-paper">
+                <canvas id="gridCanvas" class="grid-canvas"></canvas>
+                <canvas id="notebookCanvas" class="drawing-canvas"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- شريط الأدوات الجانبي -->
+    <div class="tools-sidebar">
+        <div class="tools-content">
+            <div class="tools-header">
+                <h3>🔧 الأدوات</h3>
+                <button id="toggleSidebar" class="sidebar-toggle-btn">📚 أدوات إضافية</button>
+            </div>
+            
+            <!-- أدوات القلم -->
+            <div class="pen-tools-section">
+                <h4>✏️ القلم</h4>
+                <button id="togglePen" class="pen-btn">تفعيل القلم</button>
+                <div class="pen-controls">
+                    <label>اللون:</label>
+                    <input type="color" id="penColor" value="#ff0000" class="color-picker">
+                    <label>الحجم:</label>
+                    <input type="range" id="penSize" min="1" max="20" value="3" class="size-picker">
+                </div>
+                <button id="clearDrawing" class="pen-btn">🗑️ مسح الرسومات</button>
+            </div>
+            
+            <!-- الحاسبة -->
+            <div class="calculator-section">
+                <h4>🧮 الحاسبة</h4>
+                <div class="calculator-display">
+                    <input type="text" id="calcDisplay" readonly value="0">
+                </div>
+                <div class="calculator-buttons">
+                    <button class="calc-btn" onclick="clearCalc()">C</button>
+                    <button class="calc-btn" onclick="appendCalc('(')">(</button>
+                    <button class="calc-btn" onclick="appendCalc(')')">)</button>
+                    <button class="calc-btn operator" onclick="appendCalc('/')">÷</button>
+                    
+                    <button class="calc-btn" onclick="appendCalc('7')">7</button>
+                    <button class="calc-btn" onclick="appendCalc('8')">8</button>
+                    <button class="calc-btn" onclick="appendCalc('9')">9</button>
+                    <button class="calc-btn operator" onclick="appendCalc('*')">×</button>
+                    
+                    <button class="calc-btn" onclick="appendCalc('4')">4</button>
+                    <button class="calc-btn" onclick="appendCalc('5')">5</button>
+                    <button class="calc-btn" onclick="appendCalc('6')">6</button>
+                    <button class="calc-btn operator" onclick="appendCalc('-')">−</button>
+                    
+                    <button class="calc-btn" onclick="appendCalc('1')">1</button>
+                    <button class="calc-btn" onclick="appendCalc('2')">2</button>
+                    <button class="calc-btn" onclick="appendCalc('3')">3</button>
+                    <button class="calc-btn operator" onclick="appendCalc('+')">+</button>
+                    
+                    <button class="calc-btn" onclick="appendCalc('0')">0</button>
+                    <button class="calc-btn" onclick="appendCalc('.')">.</button>
+                    <button class="calc-btn" onclick="appendCalc('√')">√</button>
+                    <button class="calc-btn equals" onclick="calculate()">=</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الشريط الجانبي -->
+    <aside id="sidebar" class="sidebar">
+        <button id="closeSidebar" class="close-sidebar-btn">✕</button>
+        
+        <!-- محول الوحدات -->
+        <div class="tool-card">
+            <h3>📏 محول الوحدات</h3>
+            <select id="conversionType" class="select-input" onchange="updateConversionUnits()">
+                <option value="length">الطول</option>
+                <option value="weight">الوزن</option>
+                <option value="area">المساحة</option>
+            </select>
+            <div class="converter-inputs">
+                <input type="number" id="fromValue" placeholder="القيمة" class="input-field">
+                <select id="fromUnit" class="select-input"></select>
+                <span>=</span>
+                <input type="number" id="toValue" placeholder="النتيجة" class="input-field" readonly>
+                <select id="toUnit" class="select-input"></select>
+            </div>
+            <button class="btn btn-primary" onclick="convert()">تحويل</button>
+        </div>
+
+        <!-- جدول الضرب -->
+        <div class="tool-card">
+            <h3>✖️ جدول الضرب</h3>
+            <select id="multiplyNumber" class="select-input" onchange="showMultiplicationTable()">
+                <option value="1">جدول 1</option>
+                <option value="2">جدول 2</option>
+                <option value="3">جدول 3</option>
+                <option value="4">جدول 4</option>
+                <option value="5">جدول 5</option>
+                <option value="6">جدول 6</option>
+                <option value="7">جدول 7</option>
+                <option value="8">جدول 8</option>
+                <option value="9">جدول 9</option>
+                <option value="10">جدول 10</option>
+            </select>
+            <div id="multiplicationTable" class="multiplication-table"></div>
+        </div>
+
+        <!-- جدول القسمة -->
+        <div class="tool-card">
+            <h3>➗ جدول القسمة</h3>
+            <select id="divideNumber" class="select-input" onchange="showDivisionTable()">
+                <option value="1">جدول 1</option>
+                <option value="2">جدول 2</option>
+                <option value="3">جدول 3</option>
+                <option value="4">جدول 4</option>
+                <option value="5">جدول 5</option>
+                <option value="6">جدول 6</option>
+                <option value="7">جدول 7</option>
+                <option value="8">جدول 8</option>
+                <option value="9">جدول 9</option>
+                <option value="10">جدول 10</option>
+            </select>
+            <div id="divisionTable" class="multiplication-table"></div>
+        </div>
+
+        <!-- آلة الجمع -->
+        <div class="tool-card">
+            <h3>➕ آلة الجمع</h3>
+            <input type="number" id="addNum1" placeholder="العدد الأول" class="input-field">
+            <input type="number" id="addNum2" placeholder="العدد الثاني" class="input-field">
+            <button class="btn btn-primary" onclick="addNumbers()">جمع</button>
+            <p id="addResult" class="result">النتيجة: </p>
+        </div>
+
+        <!-- آلة الطرح -->
+        <div class="tool-card">
+            <h3>➖ آلة الطرح</h3>
+            <input type="number" id="subNum1" placeholder="العدد الأول" class="input-field">
+            <input type="number" id="subNum2" placeholder="العدد الثاني" class="input-field">
+            <button class="btn btn-primary" onclick="subtractNumbers()">طرح</button>
+            <p id="subResult" class="result">النتيجة: </p>
+        </div>
+
+        <!-- آلة الضرب -->
+        <div class="tool-card">
+            <h3>✖️ آلة الضرب</h3>
+            <input type="number" id="mulNum1" placeholder="العدد الأول" class="input-field">
+            <input type="number" id="mulNum2" placeholder="العدد الثاني" class="input-field">
+            <button class="btn btn-primary" onclick="multiplyNumbers()">ضرب</button>
+            <p id="mulResult" class="result">النتيجة: </p>
+        </div>
+
+        <!-- آلة القسمة -->
+        <div class="tool-card">
+            <h3>➗ آلة القسمة</h3>
+            <input type="number" id="divNum1" placeholder="العدد الأول" class="input-field">
+            <input type="number" id="divNum2" placeholder="العدد الثاني" class="input-field">
+            <button class="btn btn-primary" onclick="divideNumbers()">قسمة</button>
+            <p id="divResult" class="result">النتيجة: </p>
+        </div>
+
+        <!-- المعلومات الرياضية -->
+        <div class="tool-card">
+            <h3>📐 معلومات رياضية</h3>
+            <div class="math-info">
+                <div class="info-item">
+                    <strong>π (باي):</strong> 3.14159...
+                </div>
+                <div class="info-item">
+                    <strong>√2:</strong> 1.41421...
+                </div>
+                <div class="info-item">
+                    <strong>√3:</strong> 1.73205...
+                </div>
+                <div class="info-item">
+                    <strong>الذهب (φ):</strong> 1.61803...
+                </div>
+                <div class="info-item">
+                    <strong>e (عدد أويلر):</strong> 2.71828...
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- قسم عرض الكتاب -->
+    <section class="book-section fullscreen">
+        <div class="section-header">
+            <h2>📖 عرض الكتاب</h2>
+            <div class="pdf-controls">
+                <button id="prevPage" class="btn">السابق</button>
+                <span id="pageInfo">صفحة 0 من 0</span>
+                <input type="number" id="gotoPage" class="page-input" placeholder="رقم الصفحة" min="1">
+                <button id="gotoPageBtn" class="btn">اذهب</button>
+                <button id="nextPage" class="btn">التالي</button>
+                <button id="fullscreenBtn" class="btn btn-primary">⛶ ملء الشاشة</button>
+                <button id="downloadBtn" class="btn btn-primary">تحميل الكتاب</button>
+            </div>
+        </div>
+        <div class="pdf-viewer">
+            <div class="canvas-container">
+                <canvas id="pdfCanvas"></canvas>
+                <canvas id="drawingCanvas"></canvas>
+            </div>
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p id="loadingStatusText">جاري تحميل كتاب الرياضيات تلقائياً...</p>
+                <div style="margin-top: 1rem;">
+                    <p style="color: #888; margin-bottom: 0.5rem;">أو اختر ملف PDF من جهازك يدويّاً إذا لزم الأمر:</p>
+                    <input type="file" id="pdfUpload" accept=".pdf" style="color: #fff; background: #333; padding: 0.5rem; border-radius: 5px;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <footer>
+        <p>© 2024 موقع الرياضيات - الصف الثاني المتوسط</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
